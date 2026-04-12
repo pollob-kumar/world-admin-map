@@ -61,6 +61,7 @@ world-admin-map/
 │                                      ├── GeoServiceTest.java
 │                                      └── BangladeshTest.java
 │
+├── CONTRIBUTING.md
 ├── DIRECTORY.md
 ├── LICENSE
 ├── pom.xml
