@@ -3,7 +3,7 @@
 
 ---
 **Project Name:** World Admin Map  
-**Version:** 1.0.1  
+**Version:** 1.1.1  
 **Date:** 2026-04-13  
 **Prepared by:** Pollob Kumar
 
@@ -246,7 +246,35 @@ System must dynamically load based on country code.
 
 ---
 
-# 11. Future Scope
+# 11. Branch Strategy
+
+All feature branches are created from `develop` and merged back via Pull Request.
+
+| # | Branch Name | What Will Be                                                                                                       | Depends On |
+|---|---|--------------------------------------------------------------------------------------------------------------------|---|
+| 1 | `feature/project-setup` | `pom.xml`, `.gitignore`, folder structure                                                                          | — |
+| 2 | `feature/core-models` | `model/AdminUnit.java`, `AdminLevel1.java`, `AdminLevel2.java`, `AdminLevel3.java`, `enums/AdminLevel.java`, `CountryCode.java` | `feature/project-setup` |
+| 3 | `feature/repository-layer` | `repository/AdminRepository.java`, `JsonDataLoader.java`                                                           | `feature/core-models` |
+| 4 | `feature/json-resources` | `resources/data/bd/`, `in/`, `us/` — All `.json` data files                                                        | `feature/repository-layer` |
+| 5 | `feature/country-loader-interface` | `country/CountryLoader.java` (interface only)                                                                      | `feature/core-models` |
+| 6 | `feature/bangladesh-loader` | `country/BangladeshLoader.java`                                                                                    | `feature/country-loader-interface`, `feature/json-resources` |
+| 7 | `feature/india-loader` | `country/IndiaLoader.java`                                                                                         | `feature/country-loader-interface`, `feature/json-resources` |
+| 8 | `feature/usa-loader` | `country/USALoader.java`                                                                                           | `feature/country-loader-interface`, `feature/json-resources` |
+| 9 | `feature/country-factory` | `factory/CountryFactory.java`                                                                                      | `feature/bangladesh-loader`, `feature/india-loader`, `feature/usa-loader` |
+| 10 | `feature/geo-utils` | `geo/GeoJson.java`, `BoundingBox.java`                                                                             | `feature/core-models` |
+| 11 | `feature/service-layer` | `service/GeoService.java`                                                                                          | `feature/country-factory`, `feature/geo-utils` |
+| 12 | `feature/facade-api` | `GeoAdmin.java`                                                                                                    | `feature/service-layer` |
+| 13 | `test/unit-tests` | `GeoServiceTest.java`, `BangladeshTest.java`                                                                       | `feature/facade-api` |
+| 14 | `docs/readme-update` | `README.md`                                                                                                        | `feature/facade-api` |
+| 15 | `docs/contributing` | `CONTRIBUTING.md`                                                                                                  | `feature/project-setup` |
+| 16 | `docs/srs-update` | `SRS.md`, `DIRECTORY.md`                                                                                           | `feature/facade-api` |
+
+**Note:**
+- Now India/USA loader is not needed, start with Bangladesh. `feature/india-loader` and `feature/usa-loader` will now be stubs/placeholders.
+
+---
+
+# 12. Future Scope
 
 * Maven plugin for auto data validation
 * Spring Boot starter version
@@ -257,7 +285,7 @@ System must dynamically load based on country code.
 
 ---
 
-# 12. Non-Functional Requirements
+# 13. Non-Functional Requirements
 
 * Performance: Fast data retrieval. O(1) or O(log n) lookup preferred using HashMap indexing
 * Scalability: Easy to add new countries
@@ -268,7 +296,7 @@ System must dynamically load based on country code.
 
 ---
 
-# 13. AI Development Rule
+# 14. AI Development Rule
 
 * Always follow this SRS strictly
 * Do not change data structure
@@ -280,7 +308,7 @@ System must dynamically load based on country code.
 
 ---
 
-# 14. Maven Central Requirements
+# 15. Maven Central Requirements
 
 - Proper pom.xml configuration
 - Source JAR and Javadoc JAR required
@@ -290,7 +318,7 @@ System must dynamically load based on country code.
 
 ---
 
-# 15. External Integration Overview
+# 16. External Integration Overview
 The system will be distributed as a reusable Java library through Maven Central Repository.
 Developers can easily integrate the library into their projects using a standard dependency configuration.
 
@@ -310,7 +338,7 @@ import io.github.pollob_kumar.worldadmin.GeoAdmin;
 ```
 ---
 
-# 16. Testing Requirements
+# 17. Testing Requirements
 - Unit tests using JUnit 5
 - Test coverage ≥ 80%
 - Validation tests for JSON loading
@@ -318,7 +346,7 @@ import io.github.pollob_kumar.worldadmin.GeoAdmin;
 
 ---
 
-# 17. Dependencies Policy
+# 18. Dependencies Policy
 
 **Allowed:**
 
@@ -333,7 +361,7 @@ import io.github.pollob_kumar.worldadmin.GeoAdmin;
 
 ---
 
-# 18. Assumptions
+# 19. Assumptions
 
 * Data is pre-collected and validated
 * JSON format is stable
@@ -343,16 +371,17 @@ import io.github.pollob_kumar.worldadmin.GeoAdmin;
 
 ---
 
-# 19. Revision History
+# 20. Revision History
 
 | Version | Date       | Author       | Description                                                               |
 |---------|------------| ------------ |---------------------------------------------------------------------------|
 | 1.0     | 2026-04-12 | Pollob Kumar | Initial version of SRS document                                           |
 | 1.0.1   | 2026-04-13 | Pollob Kumar | updated SRS with CONTRIBUTING.md and external <br/> integration overview. |
+| 1.1.1   | 2026-04-13 | Pollob Kumar | added Branch Strategy                                                     | 
 
 ----
 
-# 20. LICENSE
+# 21. LICENSE
 
 - Apache 2.0
 
