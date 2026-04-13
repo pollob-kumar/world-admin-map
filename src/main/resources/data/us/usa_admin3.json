@@ -1,0 +1,37 @@
+[
+  {
+    "id": "US10010001",
+    "name": "Hollywood",
+    "parentId": "US1001",
+    "lat": 34.0928,
+    "lon": -118.3287
+  },
+  {
+    "id": "US10020001",
+    "name": "Mission District",
+    "parentId": "US1002",
+    "lat": 37.7599,
+    "lon": -122.4148
+  },
+  {
+    "id": "US20010001",
+    "name": "Downtown Houston",
+    "parentId": "US2001",
+    "lat": 29.7604,
+    "lon": -95.3698
+  },
+  {
+    "id": "US20020001",
+    "name": "Deep Ellum",
+    "parentId": "US2002",
+    "lat": 32.7821,
+    "lon": -96.7852
+  },
+  {
+    "id": "US30010001",
+    "name": "Manhattan",
+    "parentId": "US3001",
+    "lat": 40.7831,
+    "lon": -73.9712
+  }
+]
