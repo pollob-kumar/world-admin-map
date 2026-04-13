@@ -1,0 +1,44 @@
+[
+  {
+    "id": "IN10010001",
+    "name": "Haveli",
+    "parentId": "IN1001",
+    "lat": 18.5660,
+    "lon": 73.9000
+  },
+  {
+    "id": "IN10020001",
+    "name": "Andheri",
+    "parentId": "IN1002",
+    "lat": 19.1190,
+    "lon": 72.8490
+  },
+  {
+    "id": "IN20010001",
+    "name": "Yelahanka",
+    "parentId": "IN2001",
+    "lat": 13.0800,
+    "lon": 77.6200
+  },
+  {
+    "id": "US10010001",
+    "name": "Hollywood",
+    "parentId": "US1001",
+    "lat": 34.0928,
+    "lon": -118.3287
+  },
+  {
+    "id": "US10020001",
+    "name": "Mission District",
+    "parentId": "US1002",
+    "lat": 37.7599,
+    "lon": -122.4148
+  },
+  {
+    "id": "US20010001",
+    "name": "Downtown Houston",
+    "parentId": "US2001",
+    "lat": 29.7604,
+    "lon": -95.3698
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "IN10",
+    "name": "Maharashtra",
+    "lat": 19.7515,
+    "lon": 75.7139
+  },
+  {
+    "id": "IN20",
+    "name": "Karnataka",
+    "lat": 15.3173,
+    "lon": 75.7139
+  },
+  {
+    "id": "US10",
+    "name": "California",
+    "lat": 36.7783,
+    "lon": -119.4179
+  },
+  {
+    "id": "US20",
+    "name": "Texas",
+    "lat": 31.9686,
+    "lon": -99.9018
+  }
+]
