@@ -3,8 +3,8 @@
 
 ---
 **Project Name:** World Admin Map  
-**Version:** 1.0  
-**Date:** 2026-04-12  
+**Version:** 1.0.1  
+**Date:** 2026-04-13  
 **Prepared by:** Pollob Kumar
 
 ### Artifact Purpose:
@@ -290,7 +290,27 @@ System must dynamically load based on country code.
 
 ---
 
-# 15. Testing Requirements
+# 15. External Integration Overview
+The system will be distributed as a reusable Java library through Maven Central Repository.
+Developers can easily integrate the library into their projects using a standard dependency configuration.
+
+### Dependency Configuration (Maven)
+```xml
+<dependency>
+    <groupId>io.github.pollob-kumar</groupId>
+    <artifactId>world-admin-map</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+### Importing the Library
+After adding the dependency, developers can access the system using the main API class:
+```java
+import io.github.pollob_kumar.worldadmin.GeoAdmin;
+```
+---
+
+# 16. Testing Requirements
 - Unit tests using JUnit 5
 - Test coverage ≥ 80%
 - Validation tests for JSON loading
@@ -298,7 +318,7 @@ System must dynamically load based on country code.
 
 ---
 
-# 16. Dependencies Policy
+# 17. Dependencies Policy
 
 **Allowed:**
 
@@ -313,7 +333,7 @@ System must dynamically load based on country code.
 
 ---
 
-# 17. Assumptions
+# 18. Assumptions
 
 * Data is pre-collected and validated
 * JSON format is stable
@@ -323,16 +343,16 @@ System must dynamically load based on country code.
 
 ---
 
-# 18. Revision History
+# 19. Revision History
 
-| Version | Date       | Author       | Description                                  |
-| ------- |------------| ------------ | -------------------------------------------- |
-| 1.0     | 2026-04-12 | Pollob Kumar | Initial version of SRS document              |
-| 1.1     | -          | -            | (Future revisions will be documented here)   |
+| Version | Date       | Author       | Description                                                               |
+|---------|------------| ------------ |---------------------------------------------------------------------------|
+| 1.0     | 2026-04-12 | Pollob Kumar | Initial version of SRS document                                           |
+| 1.0.1   | 2026-04-13 | Pollob Kumar | updated SRS with CONTRIBUTING.md and external <br/> integration overview. |
 
 ----
 
-# 19. LICENSE
+# 20. LICENSE
 
 - Apache 2.0
 
