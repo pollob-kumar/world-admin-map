@@ -2,7 +2,7 @@
 
 ---
 **Project Name:** World Admin Map  
-**Version:** 1.0.0  
+**Version:** 1.1.0  
 **Date:** 2026-04-14  
 **Prepared by:** Pollob Kumar  
 **Based on SRS Version:** 1.1.1
@@ -31,7 +31,9 @@
 10. [Caching and Initialization Strategy](#10-caching-and-initialization-strategy)
 11. [Design Patterns Summary](#11-design-patterns-summary)
 12. [Dependency Graph](#12-dependency-graph)
-13. [Revision History](#13-revision-history)
+13. [Versioning Strategy](#13-versioning-strategy)
+14. [Performance Characteristics](#14-performance-characteristics)
+15. [Revision History](#15-revision-history)
 
 ---
 
@@ -350,6 +352,12 @@ public class AdminRepository {
      * Returns first match found. Searches Level1 → Level2 → Level3.
      */
     public Optional<AdminUnit> searchByName(String name) { ... }
+
+    /**
+     * Case-insensitive search across all levels.
+     * Returns ALL matches found across Level1, Level2, and Level3.
+     */
+    public List<AdminUnit> searchAll(String name) { ... }
 }
 ```
 
@@ -441,8 +449,8 @@ public class IndiaLoader implements CountryLoader {
 
     @Override
     public AdminRepository load() {
-        throw new UnsupportedOperationException(
-            "India data is not yet available in this version."
+        throw new UnsupportedCountryException(
+            "India (IN) data is not yet available. Planned for a future release."
         );
     }
 }
@@ -460,8 +468,8 @@ public class USALoader implements CountryLoader {
 
     @Override
     public AdminRepository load() {
-        throw new UnsupportedOperationException(
-            "USA data is not yet available in this version."
+        throw new UnsupportedCountryException(
+            "USA (US) data is not yet available. Planned for a future release."
         );
     }
 }
@@ -505,6 +513,16 @@ public class CountryFactory {
             throw new UnsupportedCountryException("No loader found for: " + code);
         }
         return loader;
+    }
+
+    /**
+     * Returns all CountryCodes registered in the factory.
+     * Includes both fully supported countries and stubs.
+     *
+     * @return Unmodifiable list of all registered CountryCodes
+     */
+    public static List<CountryCode> getSupportedCountries() {
+        return Collections.unmodifiableList(new ArrayList<>(LOADERS.keySet()));
     }
 }
 ```
@@ -582,6 +600,45 @@ public class GeoService {
         return getRepository(code).searchByName(name);
     }
 
+    /**
+     * Searches by name across all levels for a given country.
+     * Case-insensitive. Returns ALL matches across Level1, Level2, Level3.
+     */
+    public List<AdminUnit> searchAll(CountryCode code, String name) {
+        validateName(name);
+        return getRepository(code).searchAll(name);
+    }
+
+    // ── Direct ID Lookup ─────────────────────────────────────────────────────
+
+    /**
+     * Finds any admin unit directly by its ID, regardless of level.
+     * Searches Level1 → Level2 → Level3 index maps in order.
+     *
+     * @param code  CountryCode
+     * @param id    The admin unit ID (e.g. "BD10", "BD1004", "BD10040009")
+     * @return      Optional containing the matched AdminUnit, or empty if not found
+     */
+    public Optional<AdminUnit> getById(CountryCode code, String id) {
+        validateId(id);
+        AdminRepository repo = getRepository(code);
+        Optional<AdminUnit> result = repo.findLevel1ById(id).map(u -> (AdminUnit) u);
+        if (result.isPresent()) return result;
+        result = repo.findLevel2ById(id).map(u -> (AdminUnit) u);
+        if (result.isPresent()) return result;
+        return repo.findLevel3ById(id).map(u -> (AdminUnit) u);
+    }
+
+    // ── Country Registry ─────────────────────────────────────────────────────
+
+    /**
+     * Returns all CountryCodes registered in the library.
+     * Includes both fully supported and stub countries.
+     */
+    public List<CountryCode> getSupportedCountries() {
+        return CountryFactory.getSupportedCountries();
+    }
+
     // ── Validation ───────────────────────────────────────────────────────────
 
     private void validateId(String id) {
@@ -630,13 +687,25 @@ public class GeoAdmin {
         return instance;
     }
 
+    // ── Static Factory (preferred for new code) ────────────────────────────
+
+    /**
+     * Creates a new GeoAdmin instance. Preferred over direct constructor usage.
+     * Keeps the door open for future configuration options.
+     *
+     * @return new GeoAdmin instance
+     */
+    public static GeoAdmin create() {
+        return new GeoAdmin();
+    }
+
     // ── Constructor ────────────────────────────────────────────────────────
 
     public GeoAdmin() {
         this.geoService = new GeoService();
     }
 
-    // ── Public API Methods ─────────────────────────────────────────────────
+    // ── Public API: Level Queries ──────────────────────────────────────────
 
     /**
      * Returns all Level 1 admin units (Divisions/States) for a country.
@@ -670,8 +739,24 @@ public class GeoAdmin {
         return geoService.getLevel3(code, level2Id);
     }
 
+    // ── Public API: Direct ID Lookup ───────────────────────────────────────
+
+    /**
+     * Finds any admin unit directly by its ID, regardless of level.
+     *
+     * @param code  CountryCode
+     * @param id    The admin unit ID (e.g. "BD10", "BD1004", "BD10040009")
+     * @return      Optional containing the matched AdminUnit, or empty if not found
+     */
+    public Optional<AdminUnit> getById(CountryCode code, String id) {
+        return geoService.getById(code, id);
+    }
+
+    // ── Public API: Search ─────────────────────────────────────────────────
+
     /**
      * Searches for an admin unit by name (case-insensitive) across all levels.
+     * Returns the first match found.
      *
      * @param code  CountryCode
      * @param name  Name to search for
@@ -680,11 +765,63 @@ public class GeoAdmin {
     public Optional<AdminUnit> searchByName(CountryCode code, String name) {
         return geoService.searchByName(code, name);
     }
+
+    /**
+     * Searches by name (case-insensitive) and returns ALL matches across all levels.
+     *
+     * @param code  CountryCode
+     * @param name  Name to search for
+     * @return      List of all matching AdminUnits, or empty list if none found
+     */
+    public List<AdminUnit> searchAll(CountryCode code, String name) {
+        return geoService.searchAll(code, name);
+    }
+
+    // ── Public API: Country Registry ───────────────────────────────────────
+
+    /**
+     * Returns all CountryCodes registered in this library
+     * (both fully supported and stub countries).
+     *
+     * @return Unmodifiable list of supported CountryCodes
+     */
+    public List<CountryCode> getSupportedCountries() {
+        return geoService.getSupportedCountries();
+    }
+
+    // ── Public API: GeoJSON Export ─────────────────────────────────────────
+
+    /**
+     * Converts a single AdminUnit to a GeoJSON Feature string.
+     *
+     * @param unit  Any AdminUnit (Level1, Level2, or Level3)
+     * @return      GeoJSON Feature string
+     */
+    public String toGeoJson(AdminUnit unit) {
+        return GeoJson.toFeature(unit);
+    }
+
+    /**
+     * Converts a list of AdminUnits to a GeoJSON FeatureCollection string.
+     *
+     * @param units  List of AdminUnits
+     * @return       GeoJSON FeatureCollection string
+     */
+    public String toGeoJson(List<? extends AdminUnit> units) {
+        return GeoJson.toFeatureCollection(units);
+    }
 }
 ```
 
-**Example usage (from SRS):**
+**Example usage:**
 ```java
+// Option 1: static factory (preferred)
+GeoAdmin geo = GeoAdmin.create();
+
+// Option 2: singleton (for shared instance)
+GeoAdmin geo = GeoAdmin.getInstance();
+
+// Option 3: direct constructor (also valid)
 GeoAdmin geo = new GeoAdmin();
 
 // All divisions of Bangladesh
@@ -696,8 +833,21 @@ List<AdminLevel2> districts = geo.getLevel2(CountryCode.BD, "BD10");
 // All upazilas under Barguna (BD1004)
 List<AdminLevel3> upazilas = geo.getLevel3(CountryCode.BD, "BD1004");
 
-// Search by name
+// Direct ID lookup (any level)
+Optional<AdminUnit> unit = geo.getById(CountryCode.BD, "BD1004");
+
+// Search by name — first match
 Optional<AdminUnit> result = geo.searchByName(CountryCode.BD, "Amtali");
+
+// Search by name — all matches
+List<AdminUnit> results = geo.searchAll(CountryCode.BD, "Dhaka");
+
+// What countries are available?
+List<CountryCode> countries = geo.getSupportedCountries();
+
+// Export to GeoJSON
+String json = geo.toGeoJson(unit.get());
+String collection = geo.toGeoJson(divisions);
 ```
 
 ---
@@ -780,9 +930,24 @@ public class GeoJson {
 | `findLevel2ById(id)` | `Optional.of(unit)` | `Optional.empty()` |
 | `findLevel3ByParent(id)` | List of matching Level3 | Empty list (never null) |
 | `findLevel3ById(id)` | `Optional.of(unit)` | `Optional.empty()` |
-| `searchByName(name)` | `Optional.of(unit)` | `Optional.empty()` |
+| `searchByName(name)` | `Optional.of(unit)` (first match) | `Optional.empty()` |
+| `searchAll(name)` | `List<AdminUnit>` (all matches) | Empty list (never null) |
 
 > **Rule:** No method in the repository ever returns `null`. Lists return empty; single lookups return `Optional.empty()`.
+
+### 5.3 `GeoAdmin` Public API Contract
+
+| Method | Description | Throws |
+|--------|-------------|--------|
+| `getAllLevel1(code)` | All Level 1 units for a country | `UnsupportedCountryException` if stub |
+| `getLevel2(code, level1Id)` | Level 2 units under a Level 1 parent | `IllegalArgumentException` if ID blank |
+| `getLevel3(code, level2Id)` | Level 3 units under a Level 2 parent | `IllegalArgumentException` if ID blank |
+| `getById(code, id)` | Any unit by direct ID lookup | `IllegalArgumentException` if ID blank |
+| `searchByName(code, name)` | First match by name (case-insensitive) | `IllegalArgumentException` if name blank |
+| `searchAll(code, name)` | All matches by name (case-insensitive) | `IllegalArgumentException` if name blank |
+| `getSupportedCountries()` | All registered `CountryCode` values | — |
+| `toGeoJson(unit)` | GeoJSON Feature string for one unit | — |
+| `toGeoJson(units)` | GeoJSON FeatureCollection string for a list | — |
 
 ---
 
@@ -990,7 +1155,7 @@ public class UnsupportedCountryException extends RuntimeException {
 | `getLevel2()` called with unknown `level1Id` | Return empty `List` (no exception) |
 | `searchByName()` finds no match | Return `Optional.empty()` (no exception) |
 | `null` or blank ID passed to service | Throw `IllegalArgumentException` immediately |
-| Country stub called (IN, US in v1.0.0) | Throw `UnsupportedOperationException` with clear message |
+| Country stub called (IN, US in v1.0.0) | Throw `UnsupportedCountryException` with clear message |
 
 ### 8.3 Where Validation Happens
 
@@ -1130,17 +1295,92 @@ Supporting:
   CountryCode   (used by: CountryLoader, CountryFactory, GeoService, GeoAdmin)
   AdminLevel    (used by: GeoService)
   BoundingBox   (used by: GeoJson)
-  GeoJson       (used by: future exporters)
+  GeoJson       (used by: GeoAdmin — exposed via toGeoJson())
 ```
 
 **Dependency direction rule:** Dependencies flow downward only. No layer references a layer above it.
 
 ---
 
-## 13. Revision History
+## 13. Versioning Strategy
 
-| Version | Date | Author | Description                                              |
-|---------|------|--------|----------------------------------------------------------|
-| 1.0.0 | 2026-04-14 | Pollob Kumar | Initial SDD, covers full architecture for v1.0.0 release |
+This library follows **Semantic Versioning (SemVer)**:
+
+```
+MAJOR.MINOR.PATCH
+```
+
+| Component | When to increment |
+|-----------|------------------|
+| `MAJOR` | Breaking change to the public API (e.g. removing or renaming a method in `GeoAdmin`) |
+| `MINOR` | New backwards-compatible functionality (e.g. adding a new country, adding a new method) |
+| `PATCH` | Backwards-compatible bug fixes (e.g. fixing incorrect coordinate data, fixing a crash) |
+
+**Current version:** `1.0.0`
+
+### 13.1 What Counts as a Breaking Change
+
+- Removing or renaming any `public` method in `GeoAdmin`
+- Changing the return type of any public method
+- Renaming or removing a `CountryCode` enum value
+- Changing the format of admin unit IDs (e.g. `BD10` → `BD-10`)
+- Changing exception types thrown from documented paths
+
+### 13.2 What Does NOT Break Compatibility
+
+- Adding new `public` methods to `GeoAdmin`
+- Adding new `CountryCode` values
+- Adding new JSON data files
+- Internal refactoring of `GeoService`, `AdminRepository`, or loaders
+- Performance improvements
+
+### 13.3 Release Branch Strategy
+
+| Version Range | Branch     | Notes |
+|---------------|------------|-------|
+| `1.x.x` | `docs/sdd` | Current stable line |
+| `2.x.x` | `docs/sdd` | Future if breaking changes required |
+
+---
+
+## 14. Performance Characteristics
+
+### 14.1 Lookup Complexity
+
+| Operation | Complexity | Implementation |
+|-----------|-----------|----------------|
+| `getAllLevel1(code)` | O(1) | Direct map value list |
+| `getLevel2(code, level1Id)` | O(1) | `level2ByParent` HashMap lookup |
+| `getLevel3(code, level2Id)` | O(1) | `level3ByParent` HashMap lookup |
+| `getById(code, id)` | O(1) | Direct HashMap lookup per level |
+| `searchByName(code, name)` | O(n) | Linear scan across all units |
+| `searchAll(code, name)` | O(n) | Linear scan across all units |
+
+> **Note:** `searchByName` and `searchAll` are O(n) by design. For v1.0.0 with Bangladesh data (~572 total units), this is fast in practice. A name-indexed map can be added in a future minor version if profiling shows it is needed.
+
+### 14.2 Memory Usage Estimate
+
+| Country | Level 1 | Level 2 | Level 3 | Approx. Total |
+|---------|---------|---------|---------|---------------|
+| Bangladesh | 8 | 64 | ~500 | < 2 MB |
+
+- Data is loaded **once per country** and held for the lifetime of the `GeoService` instance
+- Memory is only consumed for countries that are actually accessed (lazy loading)
+
+### 14.3 Startup Latency
+
+- **Cold load** (first access per country): JSON parsing + HashMap construction. Expected < 50 ms for Bangladesh on modern hardware.
+- **Warm access** (subsequent calls): O(1) map lookup. No I/O.
+
+> Benchmark numbers will be documented in `BENCHMARKS.md` once the implementation is complete.
+
+---
+
+## 15. Revision History
+
+| Version | Date | Author | Description                                                                                                                                                                                                                                                                             |
+|---------|------|--------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0.0 | 2026-04-14 | Pollob Kumar | Initial SDD — covers full architecture for v1.0.0 release                                                                                                                                                                                                                               |
+| 1.1.0 | 2026-04-14 | Pollob Kumar | Added `getById()`, `searchAll()`, `getSupportedCountries()`, `toGeoJson()` to public API. <br> added `GeoAdmin.create()` static factory. <br> fixed stub loaders to use `UnsupportedCountryException`. <br> added Versioning Strategy(13) and Performance Characteristics (14) sections |
 
 ---
