@@ -1,0 +1,16 @@
+[
+  {
+    "id": "BD1004",
+    "name": "Barguna",
+    "parentId": "BD10",
+    "lat": 22.12826176,
+    "lon": 90.11013297
+  },
+  {
+    "id": "BD1006",
+    "name": "Barishal",
+    "parentId": "BD10",
+    "lat": 22.81938712,
+    "lon": 90.36878699
+  }
+]

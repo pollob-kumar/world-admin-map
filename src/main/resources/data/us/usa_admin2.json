@@ -1,0 +1,37 @@
+[
+  {
+    "id": "US1001",
+    "name": "Los Angeles County",
+    "parentId": "US10",
+    "lat": 34.0522,
+    "lon": -118.2437
+  },
+  {
+    "id": "US1002",
+    "name": "San Francisco County",
+    "parentId": "US10",
+    "lat": 37.7749,
+    "lon": -122.4194
+  },
+  {
+    "id": "US2001",
+    "name": "Harris County",
+    "parentId": "US20",
+    "lat": 29.7752,
+    "lon": -95.3103
+  },
+  {
+    "id": "US2002",
+    "name": "Dallas County",
+    "parentId": "US20",
+    "lat": 32.7767,
+    "lon": -96.7970
+  },
+  {
+    "id": "US3001",
+    "name": "New York County",
+    "parentId": "US30",
+    "lat": 40.7128,
+    "lon": -74.0060
+  }
+]
