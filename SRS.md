@@ -3,8 +3,8 @@
 
 ---
 **Project Name:** World Admin Map  
-**Version:** 1.1.1  
-**Date:** 2026-04-13  
+**Version:** 1.1.2  
+**Date:** 2026-04-19  
 **Prepared by:** Pollob Kumar
 
 ### Artifact Purpose:
@@ -16,7 +16,7 @@ This library is designed for distribution via Maven Central Repository.
 # 1. Project Overview
 
 This project is a world administrative map that provides structured geographical data such as divisions, districts, and unions with latitude and longitude.
-This project is a lightweight, dependency-free Java library that provides hierarchical administrative map data.
+This project is a lightweight Java library that provides hierarchical administrative map data with minimal dependencies (Jackson for JSON parsing).
 It allows developers to access structured location data programmatically without requiring a database or external API.
 The library will be published on Maven Central for global usage.
 
@@ -25,7 +25,7 @@ The library will be published on Maven Central for global usage.
 # 2. Objective
 
 - Provide reusable Java library for geographical admin data
-- Ensure zero external runtime dependency (pure Java + JSON resources)
+- Keep runtime dependencies minimal (Jackson for JSON parsing + JSON resources)
 - Support multiple countries in scalable format
 - Make it Maven Central compatible
 - Provide clean, stable API for developers
@@ -38,13 +38,13 @@ The library will be published on Maven Central for global usage.
 ## 3.1 Maven Coordinates
 - groupId: io.github.pollob-kumar 
 - artifactId: world-admin-map
-- version: 1.0.0
+- version: 1.0.0 (release)
 
 ## 3.2 Packaging Type
 - jar
 
 ## 3.3 Java Version
-- Java 11+ (recommended: Java 17)
+- Java 17
 
 ## 3.4 Build Tool
 - Maven
@@ -53,11 +53,14 @@ The library will be published on Maven Central for global usage.
 
 # 4. Core Features
 
-- Retrieve all Level 1 administrative regions (countries/states/divisions)
-- Retrieve Level 2 regions by parent ID
-- Retrieve Level 3 regions by parent ID
-- Search location by name
-- Fetch latitude and longitude
+- Retrieve all Level 1 administrative regions by country code
+- Retrieve Level 2 regions by parent ID and country code
+- Retrieve Level 3 regions by parent ID and country code
+- Get an administrative unit by ID
+- Search location by name (first match) and fetch all matches
+- Fetch latitude and longitude from model getters
+- Convert units to GeoJSON feature/feature collection (Point geometry)
+- Get supported country codes
 - Lightweight in-memory data loading
 - Thread-safe access
 - No database required
@@ -108,6 +111,10 @@ world-admin-map/
 │   │   │                              │   ├── AdminLevel.java
 │   │   │                              │   └── CountryCode.java
 │   │   │                              │
+│   │   │                              ├── exception/
+│   │   │                              │   ├── GeoDataLoadException.java
+│   │   │                              │   └── UnsupportedCountryException.java
+│   │   │                              │
 │   │   │                              ├── repository/               ← Data Access Layer
 │   │   │                              │   ├── AdminRepository.java
 │   │   │                              │   └── JsonDataLoader.java
@@ -154,8 +161,10 @@ world-admin-map/
 ├── CONTRIBUTING.md
 ├── DIRECTORY.md
 ├── LICENSE
+├── NOTICE
 ├── pom.xml
 ├── README.md
+├── SDD.md
 └── SRS.md
 ```
 
@@ -196,21 +205,38 @@ world-admin-map/
 # 8. Public API Design (Basic)
 
 ## Methods:
-### Get all level 1
+### Get all level 1 (by country)
 ```java
-List<AdminLevel1> getAllCountries();
+List<AdminLevel1> getAllLevel1(CountryCode code);
 ```
-### Get level 2 by parent
+### Get level 2 by parent (by country)
 ```java
-List<AdminLevel2> getLevel2(String level1Id);
+List<AdminLevel2> getLevel2(CountryCode code, String level1Id);
 ```
-### Get level 3 by parent
+### Get level 3 by parent (by country)
 ```java
-List<AdminLevel3> getLevel3(String level2Id);
+List<AdminLevel3> getLevel3(CountryCode code, String level2Id);
 ```
-### Search by name
+### Get by ID
 ```java
-Optional<Object> searchByName(String name);
+Optional<AdminUnit> getById(CountryCode code, String id);
+```
+### Search by name (first match)
+```java
+Optional<AdminUnit> searchByName(CountryCode code, String name);
+```
+### Search by name (all matches)
+```java
+List<AdminUnit> searchAll(CountryCode code, String name);
+```
+### Supported countries
+```java
+List<CountryCode> getSupportedCountries();
+```
+### GeoJSON export
+```java
+String toGeoJson(AdminUnit unit);
+String toGeoJson(List<? extends AdminUnit> units);
 ```
 
 ---
@@ -228,11 +254,13 @@ Optional<Object> searchByName(String name);
 
 # 10. Multi-Country Support Strategy
 
-System must support:
+System exposes country codes:
 
-* Bangladesh (BD)
-* USA (US)
-* India (IN)
+* Bangladesh (BD) — data available
+* USA (US) — loader placeholder (throws UnsupportedCountryException)
+* India (IN) — loader placeholder (throws UnsupportedCountryException)
+
+Currently supports Bangladesh only; India/USA are planned.
 
 Each country is isolated in separate JSON files:
 
@@ -250,24 +278,24 @@ System must dynamically load based on country code.
 
 All feature branches are created from `develop` and merged back via Pull Request.
 
-| # | Branch Name | What Will Be                                                                                                       | Depends On |
-|---|---|--------------------------------------------------------------------------------------------------------------------|---|
-| 1 | `feature/project-setup` | `pom.xml`, `.gitignore`, folder structure                                                                          | — |
-| 2 | `feature/core-models` | `model/AdminUnit.java`, `AdminLevel1.java`, `AdminLevel2.java`, `AdminLevel3.java`, `enums/AdminLevel.java`, `CountryCode.java` | `feature/project-setup` |
-| 3 | `feature/repository-layer` | `repository/AdminRepository.java`, `JsonDataLoader.java`                                                           | `feature/core-models` |
-| 4 | `feature/json-resources` | `resources/data/bd/`, `in/`, `us/` — All `.json` data files                                                        | `feature/repository-layer` |
-| 5 | `feature/country-loader-interface` | `country/CountryLoader.java` (interface only)                                                                      | `feature/core-models` |
-| 6 | `feature/bangladesh-loader` | `country/BangladeshLoader.java`                                                                                    | `feature/country-loader-interface`, `feature/json-resources` |
-| 7 | `feature/india-loader` | `country/IndiaLoader.java`                                                                                         | `feature/country-loader-interface`, `feature/json-resources` |
-| 8 | `feature/usa-loader` | `country/USALoader.java`                                                                                           | `feature/country-loader-interface`, `feature/json-resources` |
-| 9 | `feature/country-factory` | `factory/CountryFactory.java`                                                                                      | `feature/bangladesh-loader`, `feature/india-loader`, `feature/usa-loader` |
-| 10 | `feature/geo-utils` | `geo/GeoJson.java`, `BoundingBox.java`                                                                             | `feature/core-models` |
-| 11 | `feature/service-layer` | `service/GeoService.java`                                                                                          | `feature/country-factory`, `feature/geo-utils` |
-| 12 | `feature/facade-api` | `GeoAdmin.java`                                                                                                    | `feature/service-layer` |
-| 13 | `test/unit-tests` | `GeoServiceTest.java`, `BangladeshTest.java`                                                                       | `feature/facade-api` |
-| 14 | `docs/readme-update` | `README.md`                                                                                                        | `feature/facade-api` |
-| 15 | `docs/contributing` | `CONTRIBUTING.md`                                                                                                  | `feature/project-setup` |
-| 16 | `docs/srs-update` | `SRS.md`, `DIRECTORY.md`                                                                                           | `feature/facade-api` |
+| # | Branch Name                        | What Will Be                                                                                                                   | Depends On |
+|---|------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|---|
+| 1 | `pollob/project-setup`             | `pom.xml`, `.gitignore`                                                                                                        | — |
+| 2 | `feature/core-models`              | `model/AdminUnit.java`, `AdminLevel1.java`, `AdminLevel2.java`, `AdminLevel3.java`, `enums/AdminLevel.java`, `CountryCode.java` | `feature/project-setup` |
+| 3 | `feature/exception-layer`          | `exception/GeoDataLoadException.java`, `UnsupportedCountryException.java`                                                      | `feature/project-setup` |
+| 4 | `feature/repository-layer`         | `repository/AdminRepository.java`, `JsonDataLoader.java`                                                                       | `feature/core-models`, `feature/exception-layer` |
+| 5 | `feature/json-resources`           | `resources/data/bd/`, `in/`, `us/` — All `.json` data files                                                                    | `feature/repository-layer` |
+| 6 | `feature/country-loader-interface` | `country/CountryLoader.java` (interface only)                                                                                  | `feature/core-models` |
+| 7 | `feature/bangladesh-loader`        | `country/BangladeshLoader.java`                                                                                                | `feature/country-loader-interface`, `feature/json-resources` |
+| 8 | `feature/india-loader`             | `country/IndiaLoader.java`                                                                                                     | `feature/country-loader-interface`, `feature/exception-layer` |
+| 9 | `feature/usa-loader`               | `country/USALoader.java`                                                                                                       | `feature/country-loader-interface`, `feature/exception-layer` |
+| 10 | `feature/country-factory`          | `factory/CountryFactory.java`                                                                                                  | `feature/bangladesh-loader`, `feature/india-loader`, `feature/usa-loader` |
+| 11 | `feature/geo-utils`                | `geo/GeoJson.java`, `BoundingBox.java`                                                                                         | `feature/core-models` |
+| 12 | `feature/service-layer`            | `service/GeoService.java`                                                                                                      | `feature/country-factory`, `feature/geo-utils` |
+| 13 | `feature/facade-api`               | `GeoAdmin.java`                                                                                                                | `feature/service-layer` |
+| 14 | `test/unit-tests`                  | `GeoServiceTest.java`, `BangladeshTest.java`                                                                                   | `feature/facade-api` |
+| 15 | `docs/sdd`                         | `SDD.md`                                                                                                                       | `feature/facade-api` |
+| 16 | `docs/update-all-docs`             | `CONTRIBUTING.md`, `DIRECTORY.md`, `LICENSE`, `NOTICE`, `README.md`, `SDD.md`, `SRS.md`                                        | `feature/project-setup` |
 
 **Note:**
 - Now India/USA loader is not needed, start with Bangladesh. `feature/india-loader` and `feature/usa-loader` will now be stubs/placeholders.
@@ -279,7 +307,6 @@ All feature branches are created from `develop` and merged back via Pull Request
 * Maven plugin for auto data validation
 * Spring Boot starter version
 * GraphQL support
-* GeoJSON export support
 * Real-time API version
 * Database integration (optional module)
 
@@ -314,7 +341,7 @@ All feature branches are created from `develop` and merged back via Pull Request
 - Source JAR and Javadoc JAR required
 - GPG signed artifacts
 - Semantic versioning
-- No SNAPSHOT releases
+- No SNAPSHOT releases for Maven Central (development builds may use -SNAPSHOT)
 
 ---
 
@@ -373,11 +400,12 @@ import io.github.pollob_kumar.worldadmin.GeoAdmin;
 
 # 20. Revision History
 
-| Version | Date       | Author       | Description                                                               |
-|---------|------------| ------------ |---------------------------------------------------------------------------|
-| 1.0     | 2026-04-12 | Pollob Kumar | Initial version of SRS document                                           |
-| 1.0.1   | 2026-04-13 | Pollob Kumar | updated SRS with CONTRIBUTING.md and external <br/> integration overview. |
-| 1.1.1   | 2026-04-13 | Pollob Kumar | added Branch Strategy                                                     | 
+| Version | Date       | Author       | Description                                                                                                                                     |
+|---------|------------| ------------ |-------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1.0     | 2026-04-12 | Pollob Kumar | Initial version of SRS document                                                                                                                 |
+| 1.0.1   | 2026-04-13 | Pollob Kumar | updated SRS with CONTRIBUTING.md and external <br/> integration overview.                                                                       |
+| 1.1.1   | 2026-04-13 | Pollob Kumar | added Branch Strategy                                                                                                                           | 
+| 1.1.2   | 2026-04-17 | Pollob Kumar | aligned SRS with current API, dependencies, and country loaders and updated Directory, Branch Strategy to include exception layer dependencies. |
 
 ----
 
