@@ -1,0 +1,13 @@
+world-admin-map
+Copyright (c) 2026 Pollob Kumar
+
+This library includes administrative boundary data from the following source:
+
+  Dataset : Bangladesh - Subnational Administrative Boundaries (COD-AB)
+  Source  : Bangladesh Bureau of Statistics (BBS)
+  Via     : OCHA Humanitarian Data Exchange (HDX)
+  URL     : https://data.humdata.org/dataset/cod-ab-bgd
+  License : Creative Commons Attribution for Intergovernmental Organisations
+            (CC BY-IGO 3.0) — https://creativecommons.org/licenses/by/3.0/igo/
+  Changes : Original SHP/XLSX data has been converted to JSON format
+            and restructured for use in this Java library.
