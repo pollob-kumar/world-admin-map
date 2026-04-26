@@ -18,6 +18,10 @@ world-admin-map/
 │   │   │                              │   ├── AdminLevel.java
 │   │   │                              │   └── CountryCode.java
 │   │   │                              │
+│   │   │                              ├── exception/
+│   │   │                              │   ├── GeoDataLoadException.java
+│   │   │                              │   └── UnsupportedCountryException.java
+│   │   │                              │
 │   │   │                              ├── repository/               ← Data Access Layer
 │   │   │                              │   ├── AdminRepository.java
 │   │   │                              │   └── JsonDataLoader.java
@@ -64,8 +68,10 @@ world-admin-map/
 ├── CONTRIBUTING.md
 ├── DIRECTORY.md
 ├── LICENSE
+├── NOTICE
 ├── pom.xml
 ├── README.md
+├── SDD.md
 └── SRS.md
 ```
 
