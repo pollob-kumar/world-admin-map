@@ -4,11 +4,56 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+
+    <!-- Basic Info: 1. packaging tag added -->
     <groupId>io.github.pollob-kumar</groupId>
     <artifactId>world-admin-map</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
+    <!-- Basic Info: 2. For display on the portal, information about the artifact. "URL = source code" -->
+    <name>world-admin-map</name>
+    <description>Java library for world administrative map data</description>
+    <url>https://github.com/pollob-kumar/world-admin-map</url>
+
+    <!-- License: 3.  License information -->
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <!-- Developer Info: 4. Developer information  -->
+    <developers>
+        <developer>
+            <name>Pollob Kumar</name>
+            <email>pkspollob14@gmail.com</email>
+            <organization>io.github.pollob-kumar</organization>
+            <organizationUrl>https://github.com/pollob-kumar</organizationUrl>
+        </developer>
+    </developers>
+
+    <!-- SCM: 5. (scm= Source Control Management) To tell Maven where the project's source code is located -->
+    <scm>
+        <connection>scm:git:https://github.com/pollob-kumar/world-admin-map.git</connection>
+        <developerConnection>scm:git:https://github.com/pollob-kumar/world-admin-map.git</developerConnection>
+        <url>https://github.com/pollob-kumar/world-admin-map</url>
+    </scm>
+
+    <!-- Distribution (Sonatype Central): 6. It says here where we are publishing the artifact. It is the same for everyone. -->
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <!-- Properties -->
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
@@ -17,8 +62,14 @@
         <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
+        <maven-gpg-plugin.version>3.2.4</maven-gpg-plugin.version>
+        <central-publishing-maven-plugin.version>0.4.0</central-publishing-maven-plugin.version>
     </properties>
 
+    <!-- Dependencies -->
     <dependencies>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -34,8 +85,11 @@
         </dependency>
     </dependencies>
 
+    <!-- Build Plugins -->
     <build>
         <plugins>
+
+            <!-- Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -46,6 +100,7 @@
                 </configuration>
             </plugin>
 
+            <!-- Test -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -54,6 +109,72 @@
                     <useModulePath>false</useModulePath>
                 </configuration>
             </plugin>
+
+            <!-- Source Jar: 7. These plugins for Java source JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven-source-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Javadoc Jar: 8. These plugins for Java Javadoc JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- GPG sign: 9. "GPG" to maintain the integrity of the created "JAR" and published "JAR". -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>${maven-gpg-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <configuration>
+                            <keyname>0x428EC406546F47B7</keyname>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Publishes artifacts to Maven Central: 11. used the 'Nexus' service, so added this plugin. -->
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>${central-publishing-maven-plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <tokenAuth>true</tokenAuth>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 
