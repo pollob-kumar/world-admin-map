@@ -43,21 +43,7 @@ Data is loaded once per country and reused across calls. All models are immutabl
 
 ## Installation
 
-### ⚠️ Important
-
-This library is not yet published to Maven Central. It will be available after the first official release.
-
-For now, you can use it locally by building and installing it into your local Maven repository.
-
-### Option 1: Install locally (recommended for development)
-
-```bash
-mvn clean install
-```
-
-After that, you can use it in other projects via your local `.m2` repository.
-
-### Maven (after official release)
+### Maven
 
 ```xml
 <dependency>
@@ -67,13 +53,7 @@ After that, you can use it in other projects via your local `.m2` repository.
 </dependency>
 ```
 
-### Maven (development snapshot option)
-
-```xml
-<version>1.0.0-SNAPSHOT</version>
-```
-
-### Gradle (after official release)
+### Gradle
 
 ```gradle
 implementation 'io.github.pollob-kumar:world-admin-map:1.0.0'
@@ -154,6 +134,7 @@ mvn test
 
 **Pollob Kumar**
 - GitHub: [@pollob-kumar](https://github.com/pollob-kumar)
+- LinkedIn: [@pollobkumar](https://bd.linkedin.com/in/pollobkumar)
 
 ---
 
